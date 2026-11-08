@@ -1,6 +1,6 @@
 # SportHub Docs
 
-Repository tài liệu của [SportHub — hệ thống quản lý trung tâm thể thao](https://github.com/SWP391-SportsCenter-Group4/sports-center-management-system).
+Repository tài liệu của [SportHub — hệ thống quản lý trung tâm thể thao](https://github.com/SWP391-SportHub-Group4/sports-center-management-system).
 
 **[Mở mục lục tài liệu](docs/README.md)** · [Ảnh giao diện](docs/screenshots/)
 

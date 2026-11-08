@@ -1,6 +1,6 @@
 # SportHub — Tài liệu hệ thống
 
-Tài liệu của dự án [SportHub](https://github.com/SWP391-SportsCenter-Group4/sports-center-management-system). Các tài liệu dưới đây là những file hiện có trong repository này.
+Tài liệu của dự án [SportHub](https://github.com/SWP391-SportHub-Group4/sports-center-management-system). Các tài liệu dưới đây là những file hiện có trong repository này.
 
 | Tài liệu | Nội dung |
 | --- | --- |

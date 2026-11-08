@@ -116,7 +116,7 @@ Phần demo Flow 1 + Flow 2 bên dưới là tài liệu fixture cũ trong proje
 
 Các fixture cũ chỉ phục vụ database test cô lập. Dữ liệu Member/giao dịch trên môi trường chạy thật cần được tạo qua các luồng nghiệp vụ.
 
-Reset dữ liệu dev (giữ tài khoản và cấu hình, xóa mọi dữ liệu phát sinh): sao lưu rồi chạy [reset-dev-data.sql](https://github.com/SWP391-SportsCenter-Group4/sports-center-management-system/blob/main/backend/scripts/reset-dev-data.sql); đầu file có lệnh `pg_dump`/`psql` mẫu. Script chỉ chạy trên database tên `sporthub` và tạm tắt trigger chặn TRUNCATE của sổ điểm.
+Reset dữ liệu dev (giữ tài khoản và cấu hình, xóa mọi dữ liệu phát sinh): sao lưu rồi chạy [reset-dev-data.sql](https://github.com/SWP391-SportHub-Group4/sports-center-management-system/blob/main/backend/scripts/reset-dev-data.sql); đầu file có lệnh `pg_dump`/`psql` mẫu. Script chỉ chạy trên database tên `sporthub` và tạm tắt trigger chặn TRUNCATE của sổ điểm.
 
 ### 3.3 Frontend
 
@@ -181,4 +181,4 @@ Theo mục 13 của thiết kế: G01 (public sân/Coach và giá), G03 (Manager
 
 ### Cổng quyết định go-live
 
-Chỉ chấp nhận go-live khi các gap P0 trong `Center-Management-System-Design-v3.md` mục 13 đã đóng bằng test và evidence, các luồng role/ownership qua nghiệm thu, backup–restore đã diễn tập, và giao dịch VNPay sandbox thật hoàn tất. VNPay production và việc gọi API hoàn tiền của ngân hàng/VNPay ngoài phạm vi requirement hiện hành; Manager chuyển khoản ngoài hệ thống và ghi nhận qua Support Request ([Thanh toán, đối soát và hỗ trợ hoàn tiền](https://github.com/SWP391-SportsCenter-Group4/sports-center-management-system/blob/d78ec839d92eb04d602b4e9f86ff3f41288c7f22/docs/Payment-Support-Workflow.md)).
+Chỉ chấp nhận go-live khi các gap P0 trong `Center-Management-System-Design-v3.md` mục 13 đã đóng bằng test và evidence, các luồng role/ownership qua nghiệm thu, backup–restore đã diễn tập, và giao dịch VNPay sandbox thật hoàn tất. VNPay production và việc gọi API hoàn tiền của ngân hàng/VNPay ngoài phạm vi requirement hiện hành; Manager chuyển khoản ngoài hệ thống và ghi nhận qua Support Request ([Thanh toán, đối soát và hỗ trợ hoàn tiền](https://github.com/SWP391-SportHub-Group4/sports-center-management-system/blob/d78ec839d92eb04d602b4e9f86ff3f41288c7f22/docs/Payment-Support-Workflow.md)).
