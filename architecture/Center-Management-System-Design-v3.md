@@ -2,11 +2,11 @@
 
 ## Manager workspace — 20 October 2026
 
-Luồng Manager đã chốt: Overview giữ nguyên; Services, Schedule, Support & Communication, People, Transaction & Report và Audit. Request tập trung các yêu cầu hiện có và báo cáo avatar; Incident cho phép bố trí buổi học bù với cửa sổ sự cố hợp lệ, kể cả lớp có học viên. Manager chọn Sport khi tạo sân; các khóa Room Type cũ được giữ nội bộ để bảo toàn lịch sử và bảng giá. Ví điểm chỉ xem trong workspace thường; khoản tặng điểm cho sự cố Gym tạm thời theo mục 6. Chi tiết API và migration nằm trong [API contract](api-contract.md#manager-workspace--20-october-2026). Các mô tả cũ mâu thuẫn với quyết định này được thay thế; kiến trúc module và quyền quản trị nhân sự của Admin giữ nguyên.
+Luồng Manager đã chốt: Overview giữ nguyên; Services, Schedule, Support & Communication, People, Transaction & Report và Audit. Request tập trung các yêu cầu hiện có và báo cáo avatar; Incident cho phép bố trí buổi học bù với cửa sổ sự cố hợp lệ, kể cả lớp có học viên. Manager chọn Sport khi tạo sân; các khóa Room Type cũ được giữ nội bộ để bảo toàn lịch sử và bảng giá. Ví điểm chỉ xem trong workspace thường; khoản tặng điểm cho sự cố Gym tạm thời theo mục 6. Chi tiết API và migration nằm trong [API contract](../api/api-contract.md#manager-workspace--20-october-2026). Các mô tả cũ mâu thuẫn với quyết định này được thay thế; kiến trúc module và quyền quản trị nhân sự của Admin giữ nguyên.
 
 ## Activation and audit policy update — 14 October 2026
 
-The product owner confirmed the [staff activation and audit policy](api-contract.md#staff-activation-and-audit-policy-update--14-october-2026). It replaces account-only Administrator audit scope in this design. Each staff token expires at `CreatedAt + 24 hours`, including resends/corrections. `AuditLog.ActorRole` is an event-time snapshot; Admin sees Manager/Admin/Coach/System, Manager sees Manager/Receptionist/Coach/Member. Migration `AuditActorRoleSnapshot` preserves historical event payloads while reconstructing role metadata. Other role permissions remain independent of audit-read access.
+The product owner confirmed the [staff activation and audit policy](../api/api-contract.md#staff-activation-and-audit-policy-update--14-october-2026). It replaces account-only Administrator audit scope in this design. Each staff token expires at `CreatedAt + 24 hours`, including resends/corrections. `AuditLog.ActorRole` is an event-time snapshot; Admin sees Manager/Admin/Coach/System, Manager sees Manager/Receptionist/Coach/Member. Migration `AuditActorRoleSnapshot` preserves historical event payloads while reconstructing role metadata. Other role permissions remain independent of audit-read access.
 
 ### Admin account administration
 
@@ -14,7 +14,7 @@ Admin overview separates the two database status totals, Active and Deactivated,
 
 The overview has only Active accounts and Deactivated accounts as status KPIs, with staff activation in its own section. Users & roles exposes All/Active/Deactivated in the status dropdown; legacy activation queue deep links show a separate Invitation filter chip. Edit account presents a single Activate or Deactivate action appropriate to the current state, with mandatory reason and review. The duplicate Account enabled switch and Lock/Unlock actions are removed.
 
-Role/status commands share a transaction-scoped administration lock, lock the target account and recheck the actor's Active/Admin access before mutation. Self-deactivation and deactivation of the last active Admin remain blocked. Status/security stamp, audit and notification outbox are atomic. Coverage notices use a new transition ID for each effective Coach deactivation; no-op retries do not emit duplicates. Their action opens the affected Coach's Overview directly. The urgent assignments table distinguishes lead classes (replace the lead and all future sessions through the shared lead-coach API) from substitute sessions (replace only that session through reschedule). The old reassignment endpoint limited to blocked Coaches has been removed. Audit filtering supports Vietnam calendar days, exact target records and existing event-role visibility. See the [API contract](api-contract.md#coach-coverage-and-lead-coach-changes). The two-status migration maps legacy `BANNED` to `DEACTIVATED` without reenabling accounts; historical status/audit values remain readable.
+Role/status commands share a transaction-scoped administration lock, lock the target account and recheck the actor's Active/Admin access before mutation. Self-deactivation and deactivation of the last active Admin remain blocked. Status/security stamp, audit and notification outbox are atomic. Coverage notices use a new transition ID for each effective Coach deactivation; no-op retries do not emit duplicates. Their action opens the affected Coach's Overview directly. The urgent assignments table distinguishes lead classes (replace the lead and all future sessions through the shared lead-coach API) from substitute sessions (replace only that session through reschedule). The old reassignment endpoint limited to blocked Coaches has been removed. Audit filtering supports Vietnam calendar days, exact target records and existing event-role visibility. See the [API contract](../api/api-contract.md#coach-coverage-and-lead-coach-changes). The two-status migration maps legacy `BANNED` to `DEACTIVATED` without reenabling accounts; historical status/audit values remain readable.
 
 
 SportHub là **hệ thống quản lý trung tâm thể thao với ba môn: Gym, cầu lông và bóng rổ; có khả năng mở rộng thêm môn trong tương lai**.
@@ -39,7 +39,7 @@ Membership chỉ cấp quyền vào Gym. Khóa cầu lông/bóng rổ mua độc
 
 Môn, chuyên môn Coach, loại phòng/sân, giờ mở cửa và giá là dữ liệu cấu hình. Thêm môn dùng hình thức vận hành đã hỗ trợ phải tái sử dụng luồng lịch, mua dịch vụ, thanh toán và báo cáo; không rẽ nhánh nghiệp vụ theo tên môn hoặc ID seed cố định. Môn có quy tắc khác cần bổ sung validation, thiết kế và kiểm thử.
 
-**Mô hình đã triển khai (CAT-01):** môn (`sports`, có `code` bất biến) tách khỏi dịch vụ (`sport_service_offerings`: `MEMBERSHIP_ACCESS`, `GROUP_COURSE`, `COURT_RENTAL`). Ba môn seed là Gym (Membership), Cầu lông và Bóng rổ (khóa học nhóm và thuê sân). Membership chỉ bật được ở môn có mã `gym`, kiểm ở backend. Mặc định thời lượng và sĩ số lớp nằm trên dịch vụ `GROUP_COURSE`. Phòng Gym được nhận biết qua loại phòng thuộc môn Gym (`sport_room_types`). Tắt môn hoặc dịch vụ chỉ chặn giao dịch mới, không hủy hay sửa thứ đã bán; fulfillment của hóa đơn đã tạo vẫn chạy. Manager thêm môn có lớp hoặc thuê sân bằng cấu hình, không sửa code. Chi tiết API ở [api-contract](api-contract.md).
+**Mô hình đã triển khai (CAT-01):** môn (`sports`, có `code` bất biến) tách khỏi dịch vụ (`sport_service_offerings`: `MEMBERSHIP_ACCESS`, `GROUP_COURSE`, `COURT_RENTAL`). Ba môn seed là Gym (Membership), Cầu lông và Bóng rổ (khóa học nhóm và thuê sân). Membership chỉ bật được ở môn có mã `gym`, kiểm ở backend. Mặc định thời lượng và sĩ số lớp nằm trên dịch vụ `GROUP_COURSE`. Phòng Gym được nhận biết qua loại phòng thuộc môn Gym (`sport_room_types`). Tắt môn hoặc dịch vụ chỉ chặn giao dịch mới, không hủy hay sửa thứ đã bán; fulfillment của hóa đơn đã tạo vẫn chạy. Manager thêm môn có lớp hoặc thuê sân bằng cấu hình, không sửa code. Chi tiết API ở [api-contract](../api/api-contract.md).
 
 ### 1.3 Ranh giới
 
@@ -136,7 +136,7 @@ erDiagram
 - `PaymentAdjustment` lưu item, điểm hệ thống tính/điểm duyệt và ledger reference; field payout cũ chỉ đọc lịch sử.
 - `fulfillmentOutcome` là DTO suy ra từ trạng thái/PaidVia/reconciliation, không thêm cột trạng thái trùng nguồn sự thật.
 
-Chi tiết tại [Phụ lục A — Từ điển dữ liệu](#phụ-lục-a--từ-điển-dữ-liệu) và [API contract](api-contract.md). Khi tên logic và vật lý khác nhau, dùng mapping cùng entity/configuration thực tế.
+Chi tiết tại [Phụ lục A — Từ điển dữ liệu](#phụ-lục-a--từ-điển-dữ-liệu) và [API contract](../api/api-contract.md). Khi tên logic và vật lý khác nhau, dùng mapping cùng entity/configuration thực tế.
 
 ## 5. Luồng nghiệp vụ
 
@@ -202,7 +202,7 @@ Toàn chuỗi tương tác không phải một transaction duy nhất. Incident 
 
 **Sự cố ảnh hưởng Gym (BR-66, BR-118; quyết định 25/10/2026, cập nhật 26/10/2026):** Incident vẫn chặn sử dụng Gym trong thời gian đóng cửa. Không gia hạn `EndDate` Membership Active, không dời `StartDate` các gói nối tiếp và không đổi hạn day pass. Resolve từ chối `membershipExtensionDays` khác 0, lưu snapshot vé bị ảnh hưởng, không tự hoàn điểm hoặc hủy vé. Manager xem snapshot rồi chủ động gửi thông báo/email một lần qua `POST /api/manager/incidents/{id}/day-pass-notice`; retry không gửi trùng.
 
-Manager tặng điểm qua `/api/manager/point-gifts`: chọn chính xác Member có Membership Active giao với thời gian đóng Gym hoặc người có day pass trong snapshot; nhập điểm nguyên dương (mức chung hoặc chỉnh từng dòng), lý do bắt buộc, xem lại danh sách người nhận, số điểm và lý do rồi xác nhận cộng ngay. Không cần Manager khác duyệt. Bộ lọc chỉ thu hẹp danh sách, không tự chọn hay phát điểm. Khoản tặng gắn `incidentId` + `memberId`, chống tặng trùng; ledger/audit/outbox cùng transaction. Tặng điểm tách khỏi refund Membership và không đổi thời hạn quyền lợi. Manager cũng được tặng ngoài sự cố cho tài khoản Member Active đã mua gói Gym, gồm day pass; Receptionist không có quyền tặng nhưng vẫn nạp điểm hộ Member theo luồng hiện có. Số điểm mỗi người không vượt giới hạn quy đổi từ Net collected tháng hiện tại của Overview, lấy từ server; UI báo lỗi ngay khi nhập số không hợp lệ hoặc vượt giới hạn. Giao diện hiện chỉ lọc tên/email và gói; Review gift hiển thị người nhận, điểm từng người và lý do, không có dòng tổng. Chi tiết và giới hạn API ở [API contract](api-contract.md#api-manager-tặng-điểm).
+Manager tặng điểm qua `/api/manager/point-gifts`: chọn chính xác Member có Membership Active giao với thời gian đóng Gym hoặc người có day pass trong snapshot; nhập điểm nguyên dương (mức chung hoặc chỉnh từng dòng), lý do bắt buộc, xem lại danh sách người nhận, số điểm và lý do rồi xác nhận cộng ngay. Không cần Manager khác duyệt. Bộ lọc chỉ thu hẹp danh sách, không tự chọn hay phát điểm. Khoản tặng gắn `incidentId` + `memberId`, chống tặng trùng; ledger/audit/outbox cùng transaction. Tặng điểm tách khỏi refund Membership và không đổi thời hạn quyền lợi. Manager cũng được tặng ngoài sự cố cho tài khoản Member Active đã mua gói Gym, gồm day pass; Receptionist không có quyền tặng nhưng vẫn nạp điểm hộ Member theo luồng hiện có. Số điểm mỗi người không vượt giới hạn quy đổi từ Net collected tháng hiện tại của Overview, lấy từ server; UI báo lỗi ngay khi nhập số không hợp lệ hoặc vượt giới hạn. Giao diện hiện chỉ lọc tên/email và gói; Review gift hiển thị người nhận, điểm từng người và lý do, không có dòng tổng. Chi tiết và giới hạn API ở [API contract](../api/api-contract.md#api-manager-tặng-điểm).
 
 **Gym day pass trong sự cố:** không bán thêm khi Gym đang đóng (409 `gym_closed_today`), không check-in (409 `gym_closed`); vé vẫn hết hạn 22:00 cùng ngày và dùng được nếu Gym mở lại trước hạn. Manager tặng điểm khi đã ghi nhận người có vé đồng ý; nếu cần hỗ trợ tiếp, Member gửi Support Request PAYMENT gắn hóa đơn. Buổi lớp bị ảnh hưởng vẫn bù theo BR-43; lượt thuê sân vẫn theo quy tắc hoàn riêng.
 
@@ -273,7 +273,7 @@ JSON enum UPPER_SNAKE_CASE; JWT role dùng tên nội bộ; DB giữ số enum �
 
 ## 9. API và frontend
 
-Route, DTO, error, actor tra tại [API contract](api-contract.md). API chưa có trong contract không được dùng làm endpoint hiện hữu.
+Route, DTO, error, actor tra tại [API contract](../api/api-contract.md). API chưa có trong contract không được dùng làm endpoint hiện hữu.
 
 Server validate input, range, paging, timezone và ownership. Public DTO không lộ roster/email/ví/lịch cá nhân. Callback public chỉ miễn JWT đúng action, vẫn verify gateway; reconcile vẫn kiểm quyền nhân viên.
 
@@ -294,7 +294,7 @@ Landing, navigation, báo cáo và nội dung giới thiệu dùng ba môn Gym, 
 
 Jobs phải chạy lại an toàn, có dedup/lock và chịu crash. Outbox queue trong transaction; gửi sau commit theo at-least-once. Mỗi lần đổi lịch là event riêng; retry không tạo thêm điểm/quyền lợi. LoggingEmailSender phục vụ demo, không chứng minh delivery.
 
-Vận hành cần correlation ID không lộ secret/OTP, theo dõi outbox backlog, payment cần đối soát, job failure, health và backup/restore. Xem [RUNBOOK](RUNBOOK.md). Build thành công không đồng nghĩa sẵn sàng production.
+Vận hành cần correlation ID không lộ secret/OTP, theo dõi outbox backlog, payment cần đối soát, job failure, health và backup/restore. Xem [RUNBOOK](../operations/RUNBOOK.md). Build thành công không đồng nghĩa sẵn sàng production.
 
 ## 11. Bảo mật và AI
 
@@ -372,10 +372,10 @@ G01–G13 có evidence và acceptance chi tiết. Endpoint đề xuất chưa ph
 
 ## 14. Nguồn và quy tắc duy trì
 
-- [Business Rules](SportManagement_BusinessRules_v2.0_updated.docx): quy tắc và giới hạn nghiệp vụ, gồm luồng Google/mật khẩu (mục P).
-- [SSOT](00-Source-of-Truth.md): phạm vi, thuật ngữ, giải quyết mâu thuẫn.
-- [Functional & Nonfunctional Specification](Functional-and-Nonfunctional-Spec.md): yêu cầu theo vai trò/luồng.
-- [API contract](api-contract.md): route, DTO, lỗi. [RUNBOOK](RUNBOOK.md): chạy local và bàn giao triển khai.
+- [Business Rules](../requirements/SportManagement_BusinessRules_v2.0_updated.docx): quy tắc và giới hạn nghiệp vụ, gồm luồng Google/mật khẩu (mục P).
+- [SSOT](../requirements/00-Source-of-Truth.md): phạm vi, thuật ngữ, giải quyết mâu thuẫn.
+- [Functional & Nonfunctional Specification](../requirements/Functional-and-Nonfunctional-Spec.md): yêu cầu theo vai trò/luồng.
+- [API contract](../api/api-contract.md): route, DTO, lỗi. [RUNBOOK](../operations/RUNBOOK.md): chạy local và bàn giao triển khai.
 - Phụ lục A (từ điển dữ liệu), B (kiến trúc mã nguồn), C (điều hướng Member) nằm cuối file này.
 
 Yêu cầu chủ sản phẩm về ba môn là phạm vi áp dụng. Khi code/tài liệu nguồn chưa khớp, ghi rõ khoảng cách và đồng bộ; không suy rằng code đã đổi. Dùng Git để truy vết thay đổi, không chèn ngày cập nhật, changelog hoặc bảng so sánh phiên bản vào nội dung tài liệu.
@@ -389,7 +389,7 @@ Mục đích các entity và vai trò từng field.
 
 ### Ánh xạ backend
 
-Phần này chốt tên field thực tế sau refactor; các bảng logic cũ bên dưới cần đọc theo BR v2.0/Design v3 và ánh xạ này. Quyết định tương thích và API ở [API contract](api-contract.md).
+Phần này chốt tên field thực tế sau refactor; các bảng logic cũ bên dưới cần đọc theo BR v2.0/Design v3 và ánh xạ này. Quyết định tương thích và API ở [API contract](../api/api-contract.md).
 
 | Entity.field thực tế | Mục đích |
 |---|---|
@@ -456,12 +456,12 @@ Quan hệ 1–N với `USER_SPORT_SPECIALTIES` (Coach); Member có thêm 1 `POIN
 |---|---|
 | `ExternalLoginId` (PK) | Định danh dòng link |
 | `UserId` (FK → USER_ACCOUNTS) | Provider này thuộc về user nào |
-| `Provider` | `GOOGLE` (enum `ExternalAuthProvider`, xem [SSOT](00-Source-of-Truth.md)) — hiện chỉ Google, mở rộng provider khác không cần đổi entity |
+| `Provider` | `GOOGLE` (enum `ExternalAuthProvider`, xem [SSOT](../requirements/00-Source-of-Truth.md)) — hiện chỉ Google, mở rộng provider khác không cần đổi entity |
 | `ProviderUserId` | ID phía provider trả về (Google `sub`) — cùng `Provider` tạo **unique composite**, chặn 1 tài khoản Google bị link vào 2 `USER_ACCOUNTS` khác nhau |
 | `RefreshToken` | Nullable; scope Google login hiện không lưu refresh token. Nếu bổ sung lưu trữ phải thiết kế bảo vệ riêng, không lưu thô |
 | `CreatedAt` | Mốc link provider — cũng là mốc dùng để kiểm tra `(UserId, Provider)` unique (1 user không link trùng 1 provider 2 lần) |
 
-**Business rule đăng nhập Google (BR-9/60, xem mục P của Business Rules):** `POST /api/auth/google` đăng nhập thẳng nếu danh tính Google đã link; nếu email Google (đã xác minh) trùng một tài khoản đang hoạt động thì **tự link** danh tính Google vào tài khoản đó; nếu email chưa tồn tại thì **tạo ngay** tài khoản Member với `PasswordHash = NULL`. Không có bước onboarding. Chi tiết: mục P của [Business Rules](SportManagement_BusinessRules_v2.0_updated.docx).
+**Business rule đăng nhập Google (BR-9/60, xem mục P của Business Rules):** `POST /api/auth/google` đăng nhập thẳng nếu danh tính Google đã link; nếu email Google (đã xác minh) trùng một tài khoản đang hoạt động thì **tự link** danh tính Google vào tài khoản đó; nếu email chưa tồn tại thì **tạo ngay** tài khoản Member với `PasswordHash = NULL`. Không có bước onboarding. Chi tiết: mục P của [Business Rules](../requirements/SportManagement_BusinessRules_v2.0_updated.docx).
 
 #### `ROLES`
 **Mục đích:** danh mục cố định 5 vai trò trong hệ thống, tách riêng để RBAC dễ mở rộng (thêm role mới không cần đổi schema `USER_ACCOUNTS`).
