@@ -1,61 +1,40 @@
-# UC-F05 — AI workout recommendation
+# UC-F05 — Gợi ý bài tập bằng AI
 
-> Trạng thái: Draft for implementation · Owner: TODO · Cập nhật: TODO
+> Căn cứ: *SportHub SRS Part I* §2.5, §4.2 UC-74 (phạm vi mở rộng), đối chiếu [Source of Truth](../requirements/00-Source-of-Truth.md#ai-flow-56--cập-nhật-đối-chiếu-sau-các-bản-vá-02112026), [Functional & Nonfunctional Specification](../requirements/Functional-and-Nonfunctional-Spec.md#bổ-sung-yêu-cầu-ai-flow-56--02112026) và [bằng chứng AI Member/Coach](../verification/AI-Member-Coach-Implementation-Verification.md). Tài liệu này mô tả yêu cầu UC; trạng thái triển khai phải đối chiếu riêng.
 
-## 1. Mục tiêu và phạm vi
+## Mục tiêu và actor
 
-- **Actor:** Member, Coach
-- **Mục tiêu:** Member nhận gợi ý tập từ hồ sơ; Coach có thể xem, sửa và duyệt gợi ý trước khi lưu kế hoạch cho học viên được phân công.
-- **Trigger:** Member yêu cầu gợi ý sau khi hoàn tất hồ sơ hoặc Coach yêu cầu gợi ý cho học viên hợp lệ.
-- **Ngoài phạm vi:** TODO — ghi rõ chức năng liên quan nhưng không triển khai trong flow này.
+Member nhận gợi ý tập cho chính mình từ mục tiêu/trình độ/ngữ cảnh phù hợp. Coach của lớp hợp lệ lấy bản nháp Session Plan hoặc Personal Plan cho học viên được phân công, chỉnh sửa và tự lưu nội dung chính thức theo [Flow 4](flow-04-training-attendance.md). AI service là hệ thống phụ trợ; không có quyền tự tạo plan, điểm danh hay thay đổi hồ sơ.
 
-## 2. Điều kiện
+## Tiền điều kiện và dữ liệu vào
 
-- **Tiền điều kiện:** TODO — phiên/role, cấu hình, dữ liệu và trạng thái đầu vào.
-- **Hậu điều kiện thành công:** TODO — trạng thái nghiệp vụ, dữ liệu, audit và quyền lợi.
-- **Hậu điều kiện thất bại:** TODO — rollback, giữ chỗ, thông báo hoặc retry.
+- Người gọi đã đăng nhập đúng role. Member chỉ dùng dữ liệu của mình. Với Personal Plan, Coach phải có quan hệ lớp đang hiệu lực với Member; với Session Plan, Coach phải được giao đúng lớp/buổi. Quyền phải kiểm lại ở backend tại thời điểm request và khi Save.
+- Backend lấy mục tiêu tập luyện, môn, trình độ và lịch sử gần đây trong phạm vi được phép. Chỉ gửi trường cần thiết cho AI; không lấy dữ liệu học viên khác hay đưa khóa provider ra frontend.
+- Training Goal qua hai lớp kiểm: độ dài/ký tự cơ bản và ngữ nghĩa `VALID`, `VAGUE`, `INVALID`. `VAGUE` nhưng có nghĩa được cụ thể hóa bằng môn/trình độ/ngữ cảnh; `INVALID` được giải thích và không gọi sinh gợi ý. Giới hạn độ dài hiện hành có thể loại một số câu ngắn tiếng Việt trước bước ngữ nghĩa và cần test riêng.
 
-## 3. Luồng chính
+## Luồng chính UC-74
 
-| Bước | Actor / hệ thống làm gì | Kết quả quan sát được | API / màn hình / bảng liên quan |
-| --- | --- | --- | --- |
-| 1 | Xác minh hồ sơ, môn, mục tiêu và quyền truy cập dữ liệu đầu vào. | Thiếu/không hợp lệ thì không gửi yêu cầu AI. | TODO — đối chiếu code và [API contract](../api/api-contract.md) |
-| 2 | Sinh gợi ý có thông số và giải thích; hiển thị nguồn gốc AI. | Người dùng phân biệt gợi ý AI với kế hoạch Coach. | TODO — đối chiếu code và [API contract](../api/api-contract.md) |
-| 3 | Member lưu theo cơ chế hiện hành; Coach rà soát/chỉnh sửa rồi mới lưu kế hoạch. | Không biến gợi ý chưa duyệt thành kế hoạch Coach. | TODO — đối chiếu code và [API contract](../api/api-contract.md) |
+1. Member mở trang gợi ý tập và nhập/chọn mục tiêu; hoặc Coach mở form Session Plan/Personal Plan, chọn buổi hay Member hợp lệ rồi bấm yêu cầu gợi ý AI.
+2. Backend xác thực role, quan hệ phân công/chủ sở hữu, dữ liệu bắt buộc và Training Goal. Với `VAGUE`, backend tạo mục tiêu đã chuẩn hóa theo ngữ cảnh; với `VALID`, tiếp tục trực tiếp.
+3. Backend gọi AI service với context đã giới hạn. Dịch vụ trả các bài tập có thông số hợp lệ (ví dụ set/repetition) và giải thích. Backend kiểm kết quả, ghi AI log theo quy tắc hiện hành, trả về gợi ý có nhãn AI cho người dùng.
+4. Member xem gợi ý như lời khuyên cá nhân, không biến thành giáo án Coach. Coach xem, sửa và chỉ khi chủ động Save thì hệ thống mới tạo/cập nhật Session Plan hoặc Personal Plan; API Save kiểm lại quyền, lớp, buổi và Member. Gợi ý AI chưa duyệt không hiển thị như plan chính thức.
 
-## 4. Luồng thay thế và lỗi
+## Nhánh thay thế và lỗi
 
-| Mã | Điều kiện | Phản hồi và trạng thái cuối | Test |
-| --- | --- | --- | --- |
-| A1 | Hồ sơ hoặc goal thiếu, ngoài phạm vi hay phi thực tế. | TODO — status/error, rollback và thông báo | TODO |
-| A2 | AI timeout/quota/provider lỗi hoặc trả nội dung không hợp lệ. | TODO — status/error, rollback và thông báo | TODO |
-| A3 | Coach không có quyền với học viên hoặc bỏ qua bước review. | TODO — status/error, rollback và thông báo | TODO |
+| Mã | Điều kiện | Trạng thái cuối |
+| --- | --- | --- |
+| A1 | Thiếu hồ sơ/mục tiêu hoặc lỗi định dạng | Báo trường cần bổ sung; không gọi provider, không tạo plan. |
+| A2 | Goal chung nhưng hợp lệ (`VAGUE`) | Tiếp tục với mục tiêu cụ thể hóa; không coi mặc định là input sai. |
+| A3 | Goal vô nghĩa, ngoài môn, không an toàn hoặc cố prompt injection (`INVALID`) | Giải thích giới hạn; không gọi sinh gợi ý và không ghi plan. |
+| A4 | Coach mất phân công, chọn học viên khác, Member xin dữ liệu người khác | Từ chối, không gửi context cho AI. |
+| A5 | Provider timeout/quota/lỗi, JSON hoặc thông số bài tập không hợp lệ | Báo lỗi có kiểm soát; không dựng plan giả, không tự lưu. Coach có thể viết thủ công. |
+| A6 | Coach rời form hoặc chỉnh bản nháp rồi không Save | Không tạo bản ghi chính thức; log AI không thay thế thao tác Save. |
 
-## 5. Hợp đồng triển khai
+## Hậu điều kiện và nghiệm thu
 
-| Phần | Cần chốt từ code và yêu cầu |
-| --- | --- |
-| Frontend | Route, component/state, validation, loading/error, quyền hiển thị |
-| API/backend | Method/path, request/response, error, authorization, idempotency |
-| Data | Bảng và khóa liên quan, transaction, migration, audit/outbox |
-| Tích hợp | Provider/callback, timeout/retry và dữ liệu nhạy cảm (nếu có) |
+- Chỉ gợi ý thuộc scope dữ liệu người gọi; bản nháp phân biệt rõ với nội dung Coach đã lưu. AI log ghi nhận request/kết quả theo chính sách, không lộ dữ liệu nhạy cảm qua UI/log.
+- Kiểm thử: Member tự hỏi; Coach Session/Personal Plan đúng và sai phân công; mục tiêu tiếng Việt có dấu/không dấu, tiếng Anh/hỗn hợp; `VALID`/`VAGUE`/`INVALID`; câu quá ngắn; prompt injection; provider lỗi; output set/reps bất hợp lý; Save sau khi quyền bị thu hồi.
 
-## 6. Tiêu chí nghiệm thu
+## Truy vết
 
-- [ ] Không sinh gợi ý khi thiếu dữ liệu bắt buộc.
-- [ ] Hiển thị giải thích và nhãn nguồn AI.
-- [ ] Coach phải review trước khi lưu; semantics lưu của Member cần xác nhận rõ giữa trình duyệt và backend.
-
-## 7. Kiểm thử triển khai
-
-- [ ] Happy case được kiểm tra ở UI và API.
-- [ ] Các nhánh lỗi/quyền quan trọng có test.
-- [ ] Trạng thái sau thao tác khớp UI, API và DB; lưu bằng chứng/PR.
-
-## 8. Truy vết và quyết định còn mở
-
-- [Source of Truth](../requirements/00-Source-of-Truth.md) · [Business Rules](../requirements/SportManagement_BusinessRules_v2.0_updated.docx) · [API contract](../api/api-contract.md) · [Thiết kế hệ thống](../architecture/Center-Management-System-Design-v3.md) · [Demo 6 flow](../operations/LOCAL-DEMO-SCRIPT-6-FLOWS.md)
-- **BR / endpoint / màn hình / test liên quan:** TODO.
-- **Quyết định còn mở:** TODO.
-
-> Dữ liệu fixture và đường bấm trong tài liệu demo là minh họa, không tự trở thành quy tắc nghiệp vụ.
+SRS §2.5/§4.2 UC-74; BR-59, BR-105; FR-AI-01/02 và NFR-AI-01. Các API cụ thể xem [API contract](../api/api-contract.md). Phạm vi kiểm chứng ngày 02/11/2026 tập trung vào Coach; không suy từ đó rằng mọi nhánh Member đã được nghiệm thu.
