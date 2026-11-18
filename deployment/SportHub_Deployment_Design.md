@@ -141,7 +141,7 @@ Tài liệu mô tả nơi các thành phần SportHub chạy, cách chúng kết
 
 Các thành phần trong khung Docker Compose chạy trên cùng một máy Amazon Lightsail. Hướng mũi tên thể hiện bên khởi tạo kết nối. Sơ đồ được nhúng bằng mã SVG nội tuyến, với bố cục, màu sắc và AWS Architecture Icons của bản thiết kế gốc.
 
-[Mở bản xem bằng trình duyệt](SportHub_Deployment_Design.html) · [Bản sơ đồ chỉnh sửa bằng diagrams.net](assets/deployment/SportHub_Deployment_AWS.drawio) · [Nguồn biểu tượng AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
+[Nguồn biểu tượng AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
 
 | Thành phần | Nơi chạy | Vai trò khi triển khai |
 | --- | --- | --- |
