@@ -1,34 +1,34 @@
-# SportHub — AI Member/Coach: Implementation & Verification
+# SportHub — AI Member/Coach: Triển khai và xác minh
 
-Updated: 2026-11-02. Scope: Flow 5 Coach AI suggestion and Flow 6 chatbot navigation for Member/Coach only.
+Cập nhật: 2026-11-02. Phạm vi: Gợi ý AI cho Coach trong Flow 5 và điều hướng chatbot trong Flow 6 chỉ cho Member/Coach.
 
-## Evidence and limitations
+## Bằng chứng và giới hạn
 
-- Based on the available repository ZIP `(9)`, AI patch ZIPs, and the latest supplied `AiChatService(3).cs` conflict file.
-- Repository ZIP is a **snapshot**, not the GitHub HEAD after rebase. Do not overwrite a teammate's newer documentation without reviewing diffs.
-- The current merged `AiChatService.cs` uses `ISystemPromptReader` for a published prompt, and the assistant should not revert to static prompt selection.
-- No successful CI/E2E run against the final rebase HEAD is available in these inputs; the following are **acceptance criteria**, not certified pass results.
+- Dựa trên ZIP repository `(9)`, các ZIP bản vá AI và file xung đột `AiChatService(3).cs` mới nhất được cung cấp.
+- ZIP repository là **snapshot**, không phải HEAD GitHub sau rebase. Không ghi đè tài liệu mới hơn của đồng đội khi chưa xem diff.
+- `AiChatService.cs` đã merge hiện tại dùng `ISystemPromptReader` cho prompt đã xuất bản; trợ lý không nên quay lại cơ chế chọn prompt tĩnh.
+- Đầu vào này không có lần chạy CI/E2E thành công trên HEAD cuối sau rebase; nội dung sau là **tiêu chí nghiệm thu**, không phải kết quả Pass đã được chứng nhận.
 
-## Role scope
+## Phạm vi vai trò
 
-Member: chat and navigation about Member UI, own services, invoices, wallet, schedule, AI workouts and account. Coach: class/schedule, students, attendance, lesson plans, account and coaching context. Neither role is allowed to execute or receive impersonated staff-only workflows. Manager, Receptionist, Admin are not AI chat UI roles.
+Member: chat và điều hướng về UI Member, dịch vụ, hóa đơn, ví, lịch, bài tập AI và tài khoản của mình. Coach: lớp/lịch, học viên, điểm danh, giáo án, tài khoản và ngữ cảnh huấn luyện. Cả hai role đều không được thực hiện hoặc nhận hướng dẫn giả mạo vai trò cho workflow chỉ dành cho nhân viên. Manager, Receptionist, Admin không phải role có UI chat AI.
 
-## Training Goal policy
+## Chính sách Training Goal
 
-- Basic input: trim, normalize Unicode, verify nonempty, bounded length; document exact configured length threshold. A hard minimum of 12 characters rejects some meaningful short Vietnamese input and should be revised/explicitly accepted as a product rule.
-- Semantic verdicts: VALID, VAGUE, INVALID. VAGUE may proceed with normalized training goal using sport/level/context. INVALID gets an explanation, does not call generation. Provider failure/invalid JSON must fail closed without an invented plan.
-- Cases: ``tập kỹ thuật`` (VAGUE), ``cải thiện thể lực`` (VAGUE), ``tap ky thuat`` (VAGUE), ``Improve beginner footwork`` (VALID), ``dwadawdawdawdawdawd`` (INVALID), ``học SQL`` (INVALID), unrealistic height guarantee (INVALID or correction request), pain/medical risk (clarify or safe limitation), mixed language, Unicode combining accents, prompt injection and long text.
-- Output: structured items must have legal sets/reps and not contain implausible claims; Coach reviews and saves explicitly.
+- Input cơ bản: trim, chuẩn hóa Unicode, kiểm tra không rỗng, giới hạn độ dài; ghi chính xác ngưỡng độ dài được cấu hình. Mức tối thiểu cứng 12 ký tự loại một số input tiếng Việt ngắn có nghĩa và nên được sửa hoặc chấp nhận rõ ràng thành quy tắc sản phẩm.
+- Kết luận ngữ nghĩa: VALID, VAGUE, INVALID. VAGUE có thể tiếp tục với mục tiêu tập được chuẩn hóa theo môn/trình độ/ngữ cảnh. INVALID được giải thích, không gọi generation. Provider lỗi/JSON sai phải chặn xử lý theo hướng an toàn, không tự tạo plan không có căn cứ.
+- Trường hợp: ``tập kỹ thuật`` (VAGUE), ``cải thiện thể lực`` (VAGUE), ``tap ky thuat`` (VAGUE), ``Improve beginner footwork`` (VALID), ``dwadawdawdawdawdawd`` (INVALID), ``học SQL`` (INVALID), cam kết tăng chiều cao phi thực tế (INVALID hoặc yêu cầu sửa), đau/rủi ro y tế (làm rõ hoặc giới hạn an toàn), trộn ngôn ngữ, dấu Unicode tổ hợp, prompt injection và văn bản dài.
+- Output: các item có cấu trúc phải có sets/reps hợp lệ và không chứa khẳng định phi lý; Coach chủ động rà soát và lưu.
 
-## Navigation knowledge requirements
+## Yêu cầu kiến thức điều hướng
 
-1. Enumerate Member/Coach pages, tabs, buttons, route patterns and visible labels from the frontend.
-2. Trace each actionable UI control to handler and API when applicable; do not equate API endpoint with button.
-3. Record owner role, feature ID, button label, preconditions, step sequence, backend route and source file.
-4. For verified workflow, answer in Vietnamese or English based on question; keep UI button labels in English.
-5. For unmatched navigation, admit unavailable verified instructions, do not make up exact clicks; off-topic guard must not reject normal navigation questions.
+1. Liệt kê trang, tab, nút, mẫu route và nhãn hiển thị Member/Coach từ frontend.
+2. Truy vết mỗi điều khiển UI có thể thao tác tới handler và API khi phù hợp; không đồng nhất endpoint API với nút.
+3. Ghi role sở hữu, ID tính năng, nhãn nút, tiền điều kiện, trình tự bước, route backend và file nguồn.
+4. Với workflow đã xác minh, trả lời tiếng Việt hoặc tiếng Anh theo câu hỏi; giữ nhãn nút UI bằng tiếng Anh.
+5. Với điều hướng chưa khớp, thừa nhận chưa có hướng dẫn đã xác minh, không tự tạo các lần nhấp cụ thể; bộ chặn ngoài chủ đề không được từ chối câu hỏi điều hướng thông thường.
 
-## CI and merge checks
+## Kiểm tra CI và merge
 
 ```powershell
 git status
@@ -39,23 +39,23 @@ pnpm exec tsc --noEmit
 pnpm build
 ```
 
-During rebase, ensure `AiChatService` contains only one role extraction and one definition of `isCoach`, `systemPrompt`, `promptVersion`. Preserve published prompt reader and access-scope fingerprint. Finish rebase before pushing.
+Trong rebase, bảo đảm `AiChatService` chỉ có một lần trích xuất role và một định nghĩa của `isCoach`, `systemPrompt`, `promptVersion`. Giữ bộ đọc prompt đã xuất bản và fingerprint phạm vi truy cập. Hoàn thành rebase trước khi push.
 
-## Acceptance matrix
+## Ma trận nghiệm thu
 
-| Scenario | Expected |
+| Tình huống | Kết quả mong đợi |
 |---|---|
-| Coach asks in Vietnamese where Personal Plan button is | Coach path with verified UI labels; no off-topic refusal |
-| Member asks where invoices are | Member-only verified route and steps |
-| Member asks for Coach-only action | No instruction to use Coach-only page as Member |
-| Coach asks account management | Shared `/account` route, no invented menu steps |
-| Broad relevant Goal | VAGUE → suggestion, not 400 just for broadness |
-| Nonsense Goal | INVALID → explanation, no suggestion |
-| Goal unrelated to selected sport | Reject or clarify; no misrepresented sport plan |
-| Provider timeout or malformed verdict | No generation; distinguish provider failure from user-invalid input |
-| Prompt version changed | Previous interaction continuation revalidated |
-| User asks outside center scope | Polite scoped response, avoiding false off-topic classification for UI questions |
+| Coach hỏi bằng tiếng Việt nút Personal Plan ở đâu | Đường dẫn Coach với nhãn UI đã xác minh; không từ chối vì ngoài chủ đề |
+| Member hỏi hóa đơn ở đâu | Route và các bước đã xác minh chỉ dành cho Member |
+| Member yêu cầu thao tác chỉ dành cho Coach | Không hướng dẫn Member dùng trang chỉ dành cho Coach |
+| Coach hỏi quản lý tài khoản | Route `/account` dùng chung, không tự tạo bước menu |
+| Goal rộng nhưng liên quan | VAGUE → gợi ý, không trả 400 chỉ vì quá rộng |
+| Goal vô nghĩa | INVALID → giải thích, không gợi ý |
+| Goal không liên quan môn đã chọn | Từ chối hoặc làm rõ; không đưa plan sai môn |
+| Provider timeout hoặc kết luận sai định dạng | Không generation; phân biệt lỗi provider với input không hợp lệ của người dùng |
+| Phiên bản prompt thay đổi | Xác thực lại việc tiếp tục tương tác trước |
+| Người dùng hỏi ngoài phạm vi trung tâm | Phản hồi lịch sự trong phạm vi, tránh phân loại nhầm câu hỏi UI là ngoài chủ đề |
 
-## Documentation sync policy
+## Chính sách đồng bộ tài liệu
 
-The appended addenda amend historical text without deleting audit trail. Before merging the docs, compare them to `origin/feat/hao-ai-flow5-flow6` or current target HEAD; do not blindly overwrite newer docs from team members. Update `api-contract.md` from running OpenAPI when semantics and schemas are finalized. Prior claim of 100% coverage is not supported.
+Các phụ lục bổ sung sửa đổi văn bản lịch sử mà không xóa dấu vết audit. Trước khi merge tài liệu, so sánh với `origin/feat/hao-ai-flow5-flow6` hoặc HEAD đích hiện tại; không ghi đè mù quáng tài liệu mới hơn của thành viên nhóm. Cập nhật `api-contract.md` từ OpenAPI đang chạy khi ngữ nghĩa và schema đã chốt. Khẳng định 100% coverage trước đây không có cơ sở.

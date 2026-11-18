@@ -6,15 +6,15 @@ Luồng Manager đã chốt: Overview giữ nguyên; Services, Schedule, Support
 
 ## Activation and audit policy update — 14 October 2026
 
-The product owner confirmed the [staff activation and audit policy](../api/api-contract.md#staff-activation-and-audit-policy-update--14-october-2026). It replaces account-only Administrator audit scope in this design. Each staff token expires at `CreatedAt + 24 hours`, including resends/corrections. `AuditLog.ActorRole` is an event-time snapshot; Admin sees Manager/Admin/Coach/System, Manager sees Manager/Receptionist/Coach/Member. Migration `AuditActorRoleSnapshot` preserves historical event payloads while reconstructing role metadata. Other role permissions remain independent of audit-read access.
+Chủ sản phẩm đã xác nhận [chính sách kích hoạt nhân viên và audit](../api/api-contract.md#staff-activation-and-audit-policy-update--14-october-2026). Chính sách này thay thế phạm vi audit của Administrator chỉ về tài khoản trong thiết kế này. Mỗi token nhân viên hết hạn tại `CreatedAt + 24 hours`, kể cả gửi lại/sửa thông tin. `AuditLog.ActorRole` là snapshot tại thời điểm sự kiện; Admin xem Manager/Admin/Coach/System, Manager xem Manager/Receptionist/Coach/Member. Migration `AuditActorRoleSnapshot` giữ payload sự kiện lịch sử khi dựng lại metadata vai trò. Các quyền vai trò khác vẫn độc lập với quyền đọc audit.
 
 ### Admin account administration
 
-Admin overview separates the two database status totals, Active and Deactivated, from invitation queues (awaiting activation and expiring within six hours). Queue counts use server-side account filters; awaiting-activation staff remain Active in the database. Account list state survives detail navigation. Activate/Deactivate require a reason and control access; invitation delivery and setting a password are separate actions. Existing Coach specialties can also be edited by Admin without changing the role, with a review of additions and removals; Manager retains Coach profile management. Email feedback confirms queuing, not delivery, and expired invitations retain the fixed 24-hour deadline.
+Overview Admin tách hai tổng trạng thái database, Active và Deactivated, khỏi hàng đợi lời mời (đang chờ kích hoạt và hết hạn trong sáu giờ). Số lượng hàng đợi dùng bộ lọc tài khoản phía server; nhân viên đang chờ kích hoạt vẫn Active trong database. Trạng thái danh sách tài khoản được giữ khi điều hướng tới chi tiết. Activate/Deactivate yêu cầu lý do và điều khiển quyền truy cập; gửi lời mời và đặt mật khẩu là thao tác riêng. Admin cũng có thể sửa chuyên môn Coach hiện có mà không đổi role, có rà soát phần thêm/xóa; Manager giữ quản lý hồ sơ Coach. Phản hồi email xác nhận đã vào hàng đợi, không phải đã phát, và lời mời hết hạn giữ deadline cố định 24 giờ.
 
-The overview has only Active accounts and Deactivated accounts as status KPIs, with staff activation in its own section. Users & roles exposes All/Active/Deactivated in the status dropdown; legacy activation queue deep links show a separate Invitation filter chip. Edit account presents a single Activate or Deactivate action appropriate to the current state, with mandatory reason and review. The duplicate Account enabled switch and Lock/Unlock actions are removed.
+Overview chỉ có Active accounts và Deactivated accounts làm KPI trạng thái, với kích hoạt nhân viên ở mục riêng. Users & roles cung cấp All/Active/Deactivated trong dropdown trạng thái; deep link hàng đợi kích hoạt cũ hiển thị chip bộ lọc Invitation riêng. Edit account cung cấp một thao tác Activate hoặc Deactivate phù hợp trạng thái hiện tại, bắt buộc lý do và rà soát. Công tắc Account enabled trùng lặp và thao tác Lock/Unlock được gỡ.
 
-Role/status commands share a transaction-scoped administration lock, lock the target account and recheck the actor's Active/Admin access before mutation. Self-deactivation and deactivation of the last active Admin remain blocked. Status/security stamp, audit and notification outbox are atomic. Coverage notices use a new transition ID for each effective Coach deactivation; no-op retries do not emit duplicates. Their action opens the affected Coach's Overview directly. The urgent assignments table distinguishes lead classes (replace the lead and all future sessions through the shared lead-coach API) from substitute sessions (replace only that session through reschedule). The old reassignment endpoint limited to blocked Coaches has been removed. Audit filtering supports Vietnam calendar days, exact target records and existing event-role visibility. See the [API contract](../api/api-contract.md#coach-coverage-and-lead-coach-changes). The two-status migration maps legacy `BANNED` to `DEACTIVATED` without reenabling accounts; historical status/audit values remain readable.
+Lệnh vai trò/trạng thái dùng chung khóa quản trị trong phạm vi transaction, khóa tài khoản đích và kiểm tra lại quyền Active/Admin của người thao tác trước khi thay đổi. Tự vô hiệu hóa và vô hiệu hóa Admin Active cuối cùng vẫn bị chặn. Trạng thái/security stamp, audit và notification outbox có tính nguyên tử. Thông báo bố trí người thay dùng ID chuyển trạng thái mới cho mỗi lần Deactivate Coach thực tế; retry không gây thay đổi không phát thông báo trùng. Hành động của thông báo mở thẳng Overview của Coach bị ảnh hưởng. Bảng phân công khẩn cấp phân biệt lớp chủ nhiệm (thay chủ nhiệm và mọi buổi tương lai qua API lead-coach dùng chung) với buổi dạy thay (chỉ thay buổi đó qua reschedule). Endpoint phân công lại cũ chỉ dành cho Coach bị chặn đã được gỡ. Lọc audit hỗ trợ ngày lịch Việt Nam, bản ghi đích chính xác và phạm vi hiển thị theo role sự kiện hiện có. Xem [API contract](../api/api-contract.md#coach-coverage-and-lead-coach-changes). Migration hai trạng thái chuyển `BANNED` cũ sang `DEACTIVATED` mà không kích hoạt lại tài khoản; giá trị trạng thái/audit lịch sử vẫn đọc được.
 
 
 SportHub là **hệ thống quản lý trung tâm thể thao với ba môn: Gym, cầu lông và bóng rổ; có khả năng mở rộng thêm môn trong tương lai**.
@@ -574,7 +574,7 @@ Quan hệ 1–N với `USER_SPORT_SPECIALTIES` (Coach); Member có thêm 1 `POIN
 | `Code` | Mã ổn định, duy nhất (`^[a-z0-9_]{2,32}`), **không đổi sau khi tạo**; chỉ để định danh catalog và seed, không dùng để rẽ nhánh nghiệp vụ. Mã `gym` là môn tham chiếu duy nhất được bật Membership |
 | `Name` | Tên hiển thị — **unique không phân biệt hoa/thường** (`LOWER(name)`) |
 | `Description` / `ImageUrl` (nullable) | Hiển thị landing page |
-| `SortOrder` | Backend-managed consecutive order `1..N`: active sports first, inactive sports last. Create/reactivate appends to the active group; deactivate appends to the inactive group and compacts the order. Managers cannot edit it. `SportId` and `Code` remain unchanged. |
+| `SortOrder` | Thứ tự liên tiếp `1..N` do backend quản lý: môn active trước, inactive sau. Tạo/kích hoạt lại thêm vào cuối nhóm active; vô hiệu hóa thêm vào cuối nhóm inactive và thu gọn thứ tự. Manager không sửa được. `SportId` và `Code` không đổi. |
 | `IsActive` | Ngừng hoạt động thay cho xóa cứng (giữ lịch sử lớp/hóa đơn) |
 
 #### `SPORT_SERVICE_OFFERINGS`
@@ -1079,7 +1079,7 @@ SportHub là hệ thống quản lý trung tâm thể thao gồm 3 thành phần
 |---|---|---|---|
 | **Backend** | ASP.NET Core (.NET) + EF Core | `:5000` | REST API, modular monolith |
 | **Frontend** | Next.js (React + TypeScript) | `:3000` | SPA client-side rendering |
-| **Database** | PostgreSQL 16 | `:5432` | Single shared database |
+| **Database** | PostgreSQL 16 | `:5432` | Một database dùng chung |
 
 Triển khai qua **Docker Compose** với 3 containers: `postgres`, `backend`, `frontend`.
 
@@ -1213,7 +1213,7 @@ Entry point — đăng ký DI cho toàn bộ hệ thống:
 | `SportHubDbContext.cs` | 6.5KB | **DbContext duy nhất** — khai báo ~40 DbSet từ tất cả module. `OnModelCreating` gọi `ApplyConfigurationsFromAssembly` cho 9 module, tạo extension `citext` + `btree_gist`, sequence cho invoice number |
 | `CrossModuleRelationships.cs` | 3.7KB | **Nơi duy nhất** khai báo FK xuyên module (ví dụ: Invoice.MemberId → UserAccount, Enrollment.MemberPackageId → MemberPackage) |
 | `DemoDataSeeder.cs` | 24.9KB | Seed dữ liệu demo khi Development: tạo roles, users (admin/manager/coach/receptionist/member), rooms, classes, packages, invoices, enrollments… |
-| `Migrations/` | (folder) | EF Core auto-generated migrations |
+| `Migrations/` | (thư mục) | Migration do EF Core tự tạo |
 
 #### Modules/
 
@@ -1260,7 +1260,7 @@ Thư viện dùng chung — **KHÔNG chứa logic nghiệp vụ**, chỉ interfa
 
 | Folder | Chức năng |
 |---|---|
-| `Errors/` | Error code constants (snake_case) |
+| `Errors/` | Hằng mã lỗi (snake_case) |
 | `Exceptions/` | Base exception classes cho domain errors |
 | `Pagination/` | `PagedResult<T>` — generic paged response model |
 | `Time/` | `IClock` interface + `SystemClock` implementation — abstraction thời gian, dùng trong test |
@@ -1320,12 +1320,12 @@ Thư viện dùng chung — **KHÔNG chứa logic nghiệp vụ**, chỉ interfa
 
 | File | Size | Chức năng |
 |---|---|---|
-| `AuthService.cs` | 11.1KB | **Core auth logic**: login (validate credentials, generate JWT), register (verify OTP, create account, assign role), request OTP |
-| `AccountService.cs` | 6.7KB | Get/update profile, change password |
-| `PasswordResetService.cs` | 4.0KB | Forgot password (generate token, send email), reset password (validate token, update) |
+| `AuthService.cs` | 11.1KB | **Logic xác thực cốt lõi**: đăng nhập (kiểm tra thông tin xác thực, tạo JWT), đăng ký (xác minh OTP, tạo tài khoản, gán role), yêu cầu OTP |
+| `AccountService.cs` | 6.7KB | Lấy/cập nhật hồ sơ, đổi mật khẩu |
+| `PasswordResetService.cs` | 4.0KB | Quên mật khẩu (tạo token, gửi email), đặt lại mật khẩu (xác thực token, cập nhật) |
 | `GoogleAuthService.cs` | 14.1KB | Google OAuth flow: verify token → đã link thì đăng nhập; trùng email thì tự link; chưa có thì tạo tài khoản mật khẩu NULL |
-| `EmailOtpFlow.cs` | 5.0KB | Generate OTP, send via email, verify OTP code |
-| `OtpCodes.cs` | 943B | Generate random 6-digit OTP |
+| `EmailOtpFlow.cs` | 5.0KB | Tạo OTP, gửi qua email, xác minh mã OTP |
+| `OtpCodes.cs` | 943B | Tạo OTP ngẫu nhiên 6 chữ số |
 | `PasswordPolicyGuard.cs` | 965B | Validate password strength |
 | `CoachSpecialtyService.cs` | 3.1KB | Quản lý chuyên môn thể thao cho coach |
 | `CoachAdminService.cs` | 7.5KB | Admin quản lý coach: tạo, cập nhật, gán sport specialties |
@@ -1373,7 +1373,7 @@ Thư viện dùng chung — **KHÔNG chứa logic nghiệp vụ**, chỉ interfa
 
 | File | Size | Chức năng |
 |---|---|---|
-| `EmailOptions.cs` | 711B | Options class: Host, Port, Username, Password, FromEmail |
+| `EmailOptions.cs` | 711B | Lớp cấu hình: Host, Port, Username, Password, FromEmail |
 | `SmtpEmailSender.cs` | 1.4KB | Gửi email thật qua SMTP |
 | `LoggingEmailSender.cs` | 988B | Chỉ log email ra console (Development) |
 | `UnavailableEmailSender.cs` | 481B | Throw exception khi email chưa cấu hình |
@@ -1388,7 +1388,7 @@ Thư viện dùng chung — **KHÔNG chứa logic nghiệp vụ**, chỉ interfa
 
 | File | Chức năng |
 |---|---|
-| `UserAccountRepository.cs` (3.6KB) | Implement `IUserAccountRepository` — CRUD UserAccount via EF Core |
+| `UserAccountRepository.cs` (3.6KB) | Triển khai `IUserAccountRepository` — CRUD UserAccount qua EF Core |
 
 #### Infrastructure/Persistence/Configurations/ (10 files)
 
@@ -1442,7 +1442,7 @@ Module **lớn nhất**, chia thành core + 3 sub-module (Catalog, Occupancy, Th
 | File | Chức năng |
 |---|---|
 | `IClassService.cs` (1.6KB) | CRUD lớp: Create, Update, Delete, GetById, List, ToggleStatus |
-| `IClassSessionService.cs` (1.4KB) | Generate sessions, Reschedule, Cancel, GetById, ListByDateRange |
+| `IClassSessionService.cs` (1.4KB) | Tạo buổi, Reschedule, Cancel, GetById, ListByDateRange |
 | `IEnrollmentService.cs` (574B) | Enroll, Cancel, ListMyEnrollments |
 | `IAttendanceService.cs` (619B) | MarkAttendance, GetSessionRoster |
 | `IGymCheckInService.cs` (731B) | CheckIn, GetHistory, GetTodayCheckIns |
@@ -1516,7 +1516,7 @@ Module **lớn nhất**, chia thành core + 3 sub-module (Catalog, Occupancy, Th
 | **Api/** | `SportsController.cs` (2.2KB), `RoomTypesController.cs` (2.0KB), `RoomOpeningHoursController.cs` (965B), `RoomBlocksController.cs` (1.5KB), `CourtRatesController.cs` (2.0KB) | CRUD danh mục: sports, room types, opening hours, blocks, court rates |
 | **Application/** | `SportCatalogService.cs` (7.0KB), `RoomTypeService.cs` (6.2KB), `RoomOpeningHourService.cs` (5.3KB), `RoomBlockService.cs` (5.2KB), `CourtRateService.cs` (7.5KB), `SportCatalogReader.cs` (2.7KB), `CatalogContracts.cs` (3.8KB) | Business logic + DTO contracts cho catalog |
 | **Domain/** | `Sport.cs`, `RoomType.cs`, `SportRoomType.cs`, `RoomOpeningHour.cs`, `RoomBlock.cs`, `CourtRate.cs`, `SportServiceOffering.cs`, `ServiceRoomType.cs` (8 files) | Entities: Sport (mã, tên), SportServiceOffering (dịch vụ của môn), ServiceRoomType, RoomType, liên kết Sport-RoomType, giờ mở/đóng, block phòng, giá sân |
-| **Persistence/** | 6 EF configuration files | Fluent API configs cho Catalog entities |
+| **Persistence/** | 6 file cấu hình EF | Cấu hình Fluent API cho entity Catalog |
 
 #### Occupancy/ (Sub-module — Quản lý lịch trống)
 
@@ -1581,7 +1581,7 @@ Module **lớn nhất**, chia thành core + 3 sub-module (Catalog, Occupancy, Th
 | `PaymentRecordingService.cs` | 4.9KB | Ghi Payment, cập nhật Invoice status, trigger activation nếu paid full |
 | `PackageActivationService.cs` | 5.0KB | Kích hoạt MemberPackage: set startDate/endDate, gọi ClassEnrollmentFulfillment |
 | `PaymentAdjustmentService.cs` | 21.8KB | **Logic phức tạp nhất**: request refund/discount → manager approve → receptionist complete (ghi refund payment), tính suggested refund amount |
-| `InvoiceQueryService.cs` | 9.0KB | Query: list invoices (paged, filtered), detail with items + payments + adjustments |
+| `InvoiceQueryService.cs` | 9.0KB | Truy vấn: danh sách hóa đơn (phân trang, lọc), chi tiết cùng item + thanh toán + điều chỉnh |
 | `RevenueReportService.cs` | 5.2KB | Tổng hợp: collected, refunded, obligationReduction, netRevenue by day |
 
 #### Domain/Entities/ (5 files)
@@ -1627,7 +1627,7 @@ Module **lớn nhất**, chia thành core + 3 sub-module (Catalog, Occupancy, Th
 | **Api/** | `WalletsController.cs` (1.6KB), `PointAdjustmentsController.cs` (716B), `PointConfirmationsController.cs` (2.1KB) | Xem ví + lịch sử, điều chỉnh điểm (admin), xác nhận thanh toán bằng điểm |
 | **Application/** | `PointWalletService.cs` (7.4KB), `WalletQueryService.cs` (2.6KB), `PointAdjustmentService.cs` (1.6KB), `PointConfirmationService.cs` (17.9KB), `WalletContracts.cs` (1.8KB) | Hold/confirm/release/debit điểm, query balance + ledger, adjust (manager), confirmation flow |
 | **Domain/** | `PointWallet.cs` (302B), `PointLedgerEntry.cs` (779B), `PointConfirmation.cs` (739B), `PointEntryType.cs` (163B) | Entities: ví, bút toán, xác nhận, loại giao dịch |
-| **Persistence/** | 3 EF configuration files | Fluent API configs |
+| **Persistence/** | 3 file cấu hình EF | Cấu hình Fluent API |
 
 ---
 
@@ -1782,7 +1782,7 @@ Audit module **không có controller riêng** — query audit được xử lý 
 |---|---|---|
 | `UsersController.cs` | 4.1KB | Quản lý users: list (paged), `POST api/users/admin/staff` (tạo staff, email kích hoạt), activate/deactivate (lock/unlock là alias tương thích), change role, reset password |
 | `SystemSettingsController.cs` | 1.1KB | GET/PUT cài đặt hệ thống (key-value) |
-| `AuditLogsController.cs` | 1.4KB | GET audit logs (paged, filtered by actor/action/target) |
+| `AuditLogsController.cs` | 1.4KB | GET nhật ký audit (phân trang, lọc theo người thao tác/hành động/đối tượng) |
 | `ReportExportsController.cs` | 2.5KB | POST tạo report export, GET danh sách, GET download file |
 
 #### Application/Commands/
@@ -1798,9 +1798,9 @@ Audit module **không có controller riêng** — query audit được xử lý 
 | File | Chức năng |
 |---|---|
 | `IUserAdminService.cs` (1.3KB) | Quản lý users: List, `CreateStaffAccount` (tài khoản staff không mật khẩu + email kích hoạt, Coach bắt buộc kèm chuyên môn), Lock, Unlock, ChangeRole (chỉ giữa các role staff), ResetPassword |
-| `ISystemSettingService.cs` (732B) | Get/Update system settings |
-| `IAuditQueryService.cs` (601B) | Query audit logs (paged, filtered) |
-| `IReportExportService.cs` (1.6KB) | Request export, list exports, get download stream |
+| `ISystemSettingService.cs` (732B) | Lấy/cập nhật cấu hình hệ thống |
+| `IAuditQueryService.cs` (601B) | Truy vấn nhật ký audit (phân trang, lọc) |
+| `IReportExportService.cs` (1.6KB) | Yêu cầu xuất, liệt kê bản xuất, lấy stream tải xuống |
 
 #### Application/Services/ (4 files)
 
@@ -1808,7 +1808,7 @@ Audit module **không có controller riêng** — query audit được xử lý 
 |---|---|---|
 | `UserAdminService.cs` | 15.8KB | **Logic quản lý user**: tạo account staff (chưa có credential, gửi email kích hoạt) + profile, activate/deactivate có lý do (BR-6 — invalidate JWT), change role (validate constraints), reset password, audit trail |
 | `ReportExportService.cs` | 20.1KB | **Logic export báo cáo**: generate CSV/PDF cho revenue, membership, enrollment reports. Background processing, file storage, expiry cleanup |
-| `SystemSettingService.cs` | 3.2KB | CRUD system settings: cancellation deadline hours, late check-in minutes, etc. |
+| `SystemSettingService.cs` | 3.2KB | CRUD cấu hình hệ thống: số giờ hạn hủy, số phút check-in muộn, v.v. |
 | `AuditQueryService.cs` | 2.7KB | Query audit logs với filter + pagination |
 
 #### Domain/Entities/
@@ -1859,7 +1859,7 @@ Audit module **không có controller riêng** — query audit được xử lý 
 | File | Size | Chức năng |
 |---|---|---|
 | `WorkoutRecommendationService.cs` | 7.2KB | Gợi ý exercises dựa trên: goal, level, disciplines, attendance history, coach notes |
-| `AiChatService.cs` | 5.6KB | Orchestrate chat: build context → call provider → log response |
+| `AiChatService.cs` | 5.6KB | Điều phối chat: dựng context → gọi provider → ghi log response |
 | `SportHubAiContextBuilder.cs` | 4.6KB | Build context string từ member profile, active packages, recent sessions, gym check-ins |
 
 #### Application/DTOs/
@@ -1870,7 +1870,7 @@ Audit module **không có controller riêng** — query audit được xử lý 
 
 | Folder | Files | Chức năng |
 |---|---|---|
-| `Entities/` | `AiLog.cs` (688B) | Log AI interactions: UserId, Prompt, Response, Provider, ResponseTimeMs |
+| `Entities/` | `AiLog.cs` (688B) | Ghi log tương tác AI: UserId, Prompt, Response, Provider, ResponseTimeMs |
 | `Constants/` | — | AI-related constants |
 | `Exceptions/` | — | AI-specific exceptions |
 | `ValueObjects/` | — | (placeholder) |
@@ -1925,51 +1925,51 @@ frontend/src/
 
 ## Phụ lục C — Điều hướng Member
 
-The member portal has five primary destinations:
+Cổng Member có năm điểm đến chính:
 
-| Destination | Tasks |
+| Điểm đến | Công việc |
 | --- | --- |
-| Overview | Today's agenda, upcoming activity, urgent actions and Gym membership summaries |
-| Services | Classes, Gym packages and courts; registration and existing purchases/bookings share each category |
-| My schedule | Class and court events in one calendar |
-| Training | Training profile |
-| Finance | Wallet, invoices, invoice details and refund history |
+| Overview | Lịch hôm nay, hoạt động sắp tới, thao tác khẩn cấp và tổng kết membership Gym |
+| Services | Lớp, gói Gym và sân; đăng ký và các giao dịch mua/đặt hiện có cùng nằm trong từng danh mục |
+| My schedule | Sự kiện lớp và sân trong một lịch |
+| Training | Hồ sơ tập luyện |
+| Finance | Ví, hóa đơn, chi tiết hóa đơn và lịch sử hoàn trả |
 
-Courts opens the sport/date/time booking calendar directly, without a My rentals
-subsection. After successful court payment, the next action opens My schedule.
-Existing links to a specific rental still open its details and cancellation actions
-inside Services; the detail view links back to My schedule.
+Courts mở trực tiếp lịch đặt theo môn/ngày/giờ, không có mục con My rentals.
+Sau thanh toán sân thành công, hành động tiếp theo mở My schedule.
+Link hiện có tới lượt thuê cụ thể vẫn mở chi tiết và thao tác hủy
+trong Services; view chi tiết liên kết trở lại My schedule.
 
-Course discovery opens a dedicated detail page at `/member/services/courses/[id]`,
-with a compact class overview, an animated vector sports sticker and the shared Member calendar.
-Payment opens the existing checkout in a centered dialog. VNPay and full/partial wallet
-points use the existing verified backend flow; VietQR is visibly unavailable because
-the current contract has no bank-transfer provider. The checkout query parameter
-keeps the invoice recoverable on the course route after reload.
-The shared Member calendar combines registered classes and court bookings with
-local previews of the viewed course. Preview sessions use a muted fill, dashed border
-and an explicit not-registered label. Matching registered sessions are deduplicated;
-preview details cannot export bookings or open registered-class actions.
-Registered class and court details render inside Services; invoice details render inside Finance. Query parameters preserve the
-selected category, activity and item for browser Back/Forward and incoming links.
+Khám phá khóa mở trang chi tiết riêng tại `/member/services/courses/[id]`,
+với tổng quan lớp gọn, sticker thể thao vector có chuyển động và lịch Member dùng chung.
+Thanh toán mở checkout hiện có trong hộp thoại giữa màn hình. VNPay và thanh toán toàn bộ/một phần bằng
+điểm ví dùng luồng backend đã xác minh hiện có; VietQR được hiển thị rõ là chưa khả dụng vì
+contract hiện tại không có provider chuyển khoản ngân hàng. Query parameter checkout
+giúp khôi phục hóa đơn trên route khóa sau khi tải lại.
+Lịch Member dùng chung kết hợp lớp đã ghi danh và booking sân với
+bản xem trước local của khóa đang xem. Buổi xem trước dùng nền màu dịu, viền nét đứt
+và nhãn chưa đăng ký rõ ràng. Các buổi đã đăng ký trùng khớp được loại trùng;
+chi tiết xem trước không thể xuất booking hoặc mở thao tác lớp đã đăng ký.
+Chi tiết lớp đã đăng ký và sân hiển thị trong Services; chi tiết hóa đơn hiển thị trong Finance. Query parameter giữ
+danh mục, hoạt động và item được chọn cho Back/Forward trình duyệt và link truy cập tới.
 
-Old discovery, course list, court booking/rental and invoice
-detail routes redirect to the corresponding group. Existing aliases for wallet,
-training profile and registrations continue to work. Checkout remains a separate
-transaction flow. Token-based class-threshold email handling remains available;
-member response details are also available inside Services.
+Các route cũ cho khám phá, danh sách khóa, đặt/thuê sân và chi tiết
+hóa đơn chuyển hướng tới nhóm tương ứng. Alias hiện có cho ví,
+hồ sơ tập luyện và đăng ký tiếp tục hoạt động. Checkout vẫn là luồng
+giao dịch riêng. Xử lý email ngưỡng lớp dựa trên token vẫn khả dụng;
+chi tiết phản hồi Member cũng có trong Services.
 
-Notifications are accessed from the shared header, account settings from the user
-menu, and the assistant from its existing entry point. The Overview no longer
-duplicates the wallet panel or notification feed.
+Thông báo được truy cập từ header dùng chung, cài đặt tài khoản từ menu
+người dùng và trợ lý từ điểm truy cập hiện có. Overview không còn
+lặp panel ví hoặc luồng thông báo.
 
-Services uses the same compact layout as the course detail page: four categories,
-short comparison cards and expandable detail/filter sections. Classes and Gym packages are visible together in one Services frame. The member class
-catalog shows two courses per page; every result remains reachable via pagination.
-Gym and court purchases open the shared checkout dialog. The checkoutIntent
-query value scopes recovery to the selected service intent, preventing another
-package's button from resuming an unrelated invoice. Wallet data loads when a
-payment dialog opens rather than for every package card.
+Services dùng cùng bố cục gọn như trang chi tiết khóa: bốn danh mục,
+thẻ so sánh ngắn và mục chi tiết/bộ lọc có thể mở rộng. Lớp và gói Gym cùng hiển thị trong một khung Services. Danh mục lớp Member
+hiển thị hai khóa mỗi trang; mọi kết quả vẫn truy cập được qua phân trang.
+Mua Gym và sân mở hộp thoại checkout dùng chung. Giá trị query checkoutIntent
+giới hạn khôi phục theo ý định dịch vụ được chọn, ngăn nút của gói
+khác tiếp tục một hóa đơn không liên quan. Dữ liệu ví tải khi hộp thoại
+thanh toán mở thay vì cho từng thẻ gói.
 
 ---
 
@@ -1999,4 +1999,4 @@ Source ZIP kiểm kê là snapshot trước các commit remote mới. Phần nà
 
 ### Manager financial reporting: Cash and Points
 
-Reports separates cash movements from the point ledger. Cash refunded is the amount of recorded Support Request bank transfers, by Vietnam recording date, and reduces net collected. Refunds issued in points do not reduce cash. Cash and Points have separate bookmarks and exports while sharing the reporting period and comparison controls. Points contains the former Point Management general summary (used, issued, refunded, manager adjustments and current balance) plus daily activity; Point Management keeps operational gifting, member search and wallet history. Current balance is available plus held points measured now, not a historical closing balance.
+Reports tách biến động tiền khỏi ledger điểm. Cash refunded là số tiền chuyển khoản Support Request đã ghi, theo ngày ghi nhận ở Việt Nam, và làm giảm tiền thu ròng. Hoàn bằng điểm không làm giảm tiền. Cash và Points có bookmark và export riêng, đồng thời dùng chung kỳ báo cáo và điều khiển so sánh. Points chứa summary chung trước đây của Point Management (đã dùng, phát hành, hoàn, điều chỉnh Manager và số dư hiện tại) cùng hoạt động theo ngày; Point Management giữ tặng điểm vận hành, tìm Member và lịch sử ví. Số dư hiện tại là điểm khả dụng cộng điểm đang giữ được đo lúc này, không phải số dư cuối kỳ lịch sử.

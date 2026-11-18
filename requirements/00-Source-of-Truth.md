@@ -110,7 +110,7 @@ Ngoài phạm vi: đa chi nhánh, payroll/hợp đồng, chia doanh thu với ng
 
 ### Language policy
 
-The product uses English only. Public pages, authenticated screens, validation and API messages, notifications, reports, and other system-generated text must be in English. There is no language switch or saved language preference. Catalog and configuration seed values stored in the database are English. User-entered names, notes, course descriptions, and other free-form content retain the language entered by the user; do not translate or overwrite them. When migrating legacy seed data, update only records whose values still match the original system seed, so manager edits remain intact. Historical invoice snapshots and notices remain as originally issued for audit integrity; new system-generated records use English.
+Sản phẩm chỉ dùng tiếng Anh. Trang công khai, màn hình đã xác thực, thông báo validation và API, thông báo, báo cáo và các văn bản khác do hệ thống tạo phải bằng tiếng Anh. Không có nút chuyển ngôn ngữ hoặc tùy chọn ngôn ngữ được lưu. Giá trị seed danh mục và cấu hình lưu trong database là tiếng Anh. Tên, ghi chú, mô tả khóa và nội dung tự do khác do người dùng nhập giữ ngôn ngữ người dùng đã nhập; không dịch hoặc ghi đè chúng. Khi migration seed cũ, chỉ cập nhật bản ghi có giá trị vẫn khớp seed hệ thống gốc để giữ nguyên chỉnh sửa của Manager. Snapshot hóa đơn và thông báo lịch sử giữ nguyên như khi phát hành để bảo toàn audit; bản ghi mới do hệ thống tạo dùng tiếng Anh.
 
 | Chủ đề | Quy ước |
 |---|---|
