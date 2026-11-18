@@ -6,18 +6,11 @@ Tài liệu mô tả nơi các thành phần SportHub chạy, cách chúng kết
 
 ## 1. Kiến trúc triển khai
 
-```mermaid
-flowchart TD
-    Browser["Trình duyệt"] -->|HTTPS| Web["Vercel · Next.js 16"]
-    Browser -->|HTTPS API| Proxy
-    subgraph AWS["AWS Lightsail · Ubuntu 24.04 · Docker Compose"]
-        Proxy["Caddy · TLS"] -->|HTTP 8080| API["SportHub API · ASP.NET Core 10"]
-        API -->|TCP 5432| DB[("PostgreSQL 18")]
-        API -->|HTTP 8001| AI["AI Service · FastAPI"]
-    end
-    API -->|HTTPS| Integrations["Brevo · Cloudinary · VNPay"]
-    AI -->|HTTPS| Gemini["Gemini API"]
-```
+![Kiến trúc triển khai SportHub với AWS Architecture Icons. Trình duyệt gọi Vercel và Caddy qua HTTPS. Caddy, API, PostgreSQL và AI Service chạy trong Docker Compose trên cùng một máy Amazon Lightsail.](assets/deployment/SportHub_Deployment_AWS.png)
+
+Sơ đồ sử dụng AWS Architecture Icons phát hành ngày 31/07/2026. Amazon Lightsail dùng biểu tượng dịch vụ chính thức, các phần mềm và cơ sở dữ liệu dùng biểu tượng tài nguyên tổng quát. Khung nét đứt thể hiện Docker Compose, hướng mũi tên thể hiện bên khởi tạo kết nối. Nguồn biểu tượng tại [AWS Architecture Icons](https://aws.amazon.com/architecture/icons/).
+
+Thành viên nhóm phát triển xem [Member Guide — Kết nối hệ thống](MemberGuide.md) để truy cập website, chạy local và kết nối DB AWS.
 
 | Thành phần | Nơi chạy | Vai trò khi triển khai |
 | --- | --- | --- |
